@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Truck it Tool Kit</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --danger: #f72585;
+            --success: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-top: 80px;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .nav-bar {
+            position: relative;
+            top: 0;
+            width: 100%;
+            background: white;
+            padding: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .nav-button, .remove-button, .add-button {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .nav-button {
+            background: var(--light);
+            color: var(--dark);
+        }
+        
+        .nav-button:hover {
+            background: #e9ecef;
+        }
+        
+        .nav-button.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+        }
+        
+        .add-button {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .add-button:hover {
+            background-color: #3aa8d8;
+            transform: translateY(-1px);
+        }
+        
+        .remove-button {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .remove-button:hover {
+            background-color: #e5177b;
+            transform: translateY(-1px);
+        }
+        
+        .page {
+            display: none;
+            padding: 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page h1 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 28px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            min-height: 100px;
+            margin-bottom: 15px;
+            font-family: inherit;
+            transition: border 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        .entry {
+            background-color: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--accent);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .entry-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .copy-button, .delete-button {
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .copy-button {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .copy-button:hover {
+            background-color: #3a7bc8;
+            transform: translateY(-1px);
+        }
+        
+        .delete-button {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .delete-button:hover {
+            background-color: #e5177b;
+            transform: translateY(-1px);
+        }
+        
+        .entry-text {
+            white-space: pre-line;
+            flex-grow: 1;
+            padding-right: 15px;
+            color: var(--dark);
+        }
+        
+        button {
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .action-buttons button:first-child {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .action-buttons button:last-child {
+            background-color: var(--gray);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-bar">
+        <button class="add-button" onclick="addNavButton()">+ Add Tab</button>
+        <button class="remove-button" onclick="removeNavButton()">- Remove Tab</button>
+    </div>
+
+    <div id="pages"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loadStoredData);
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(`${pageId}Page`).classList.add('active');
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function addNavButton() {
+            const newPageName = prompt("Enter the new tab name:");
+            if (!newPageName) return;
+            createTab(newPageName);
+            saveTabs();
+        }
+
+        function createTab(newPageName) {
+            const pageId = newPageName.replace(/\s+/g, '');
+            
+            const navBar = document.querySelector('.nav-bar');
+            const newButton = document.createElement('button');
+            newButton.className = 'nav-button';
+            newButton.innerText = newPageName;
+            newButton.onclick = function() { showPage(pageId); };
+            navBar.insertBefore(newButton, navBar.lastElementChild.previousSibling);
+            
+            const pagesDiv = document.getElementById('pages');
+            const newPage = document.createElement('div');
+            newPage.className = 'page';
+            newPage.id = `${pageId}Page`;
+            newPage.innerHTML = `
+                <h1>${newPageName}</h1>
+                <label for="inputText${pageId}">Enter details:</label>
+                <textarea id="inputText${pageId}" placeholder="Type your notes here..."></textarea>
+                <div class="action-buttons">
+                    <button onclick="postEntry('${pageId}')">Post Entry</button>
+                    <button onclick="clearAll('${pageId}')">Clear All</button>
+                </div>
+                <div id="postContainer${pageId}"></div>
+            `;
+            pagesDiv.appendChild(newPage);
+            loadEntries(pageId);
+        }
+
+        function removeNavButton() {
+            const buttonLabel = prompt("Enter the label of the button to remove:");
+            if (!buttonLabel) return;
+            
+            const navButtons = document.querySelectorAll('.nav-button');
+            for (let btn of navButtons) {
+                if (btn.innerText === buttonLabel) {
+                    btn.remove();
+                    document.getElementById(buttonLabel.replace(/\s+/g, '') + 'Page').remove();
+                    saveTabs();
+                    return;
+                }
+            }
+            alert("Button not found.");
+        }
+
+        function postEntry(page) {
+            const input = document.getElementById(`inputText${page}`);
+            const text = input.value.trim();
+
+            if (text) {
+                const container = document.getElementById(`postContainer${page}`);
+                const div = document.createElement('div');
+                div.className = 'entry';
+                div.innerHTML = `
+                    <span class="entry-text" contenteditable="true">${text.replace(/\n/g, '<br>')}</span>
+                    <div class="entry-buttons">
+                        <button class="copy-button" onclick="copyEntry(this, '${page}')">Copy</button>
+                        <button class="delete-button" onclick="deleteEntry(this, '${page}')">Delete</button>
+                    </div>
+                `;
+                container.prepend(div); // New entries appear at top
+                input.value = '';
+                saveEntries(page);
+            }
+        }
+
+        function copyEntry(button, page) {
+            const entryText = button.closest('.entry').querySelector('.entry-text').innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = entryText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            
+            // Visual feedback
+            button.innerText = 'Copied!';
+            button.style.backgroundColor = '#4bb543';
+            setTimeout(() => {
+                button.innerText = 'Copy';
+                button.style.backgroundColor = '';
+            }, 2000);
+        }
+
+        function deleteEntry(button, page) {
+            if (confirm('Delete this entry?')) {
+                button.closest('.entry').remove();
+                saveEntries(page);
+            }
+        }
+
+        function clearAll(page) {
+            if (confirm('Are you sure you want to delete ALL entries?')) {
+                document.getElementById(`postContainer${page}`).innerHTML = '';
+                saveEntries(page);
+            }
+        }
+
+        function saveTabs() {
+            const tabs = [];
+            document.querySelectorAll('.nav-button').forEach(btn => tabs.push(btn.innerText));
+            localStorage.setItem('tabs', JSON.stringify(tabs));
+        }
+
+        function saveEntries(page) {
+            const entries = [];
+            document.querySelectorAll(`#postContainer${page} .entry .entry-text`).forEach(entry => {
+                entries.push({
+                    text: entry.innerText,
+                    html: entry.innerHTML
+                });
+            });
+            localStorage.setItem(`entries_${page}`, JSON.stringify(entries));
+        }
+
+        function loadStoredData() {
+            const tabs = JSON.parse(localStorage.getItem('tabs')) || [];
+            tabs.forEach(tab => createTab(tab));
+        }
+
+        function loadEntries(pageId) {
+            const entries = JSON.parse(localStorage.getItem(`entries_${pageId}`)) || [];
+            const container = document.getElementById(`postContainer${pageId}`);
+            entries.forEach(entry => {
+                const div = document.createElement('div');
+                div.className = 'entry';
+                div.innerHTML = `
+                    <span class="entry-text" contenteditable="true">${entry.html || entry.text}</span>
+                    <div class="entry-buttons">
+                        <button class="copy-button" onclick="copyEntry(this, '${pageId}')">Copy</button>
+                        <button class="delete-button" onclick="deleteEntry(this, '${pageId}')">Delete</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
